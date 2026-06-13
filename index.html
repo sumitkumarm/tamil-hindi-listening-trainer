@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10231f">
+    <title>Hindi Listening Trainer</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Tamil speaker Hindi trainer</p>
+          <h1>Listen for the anchor</h1>
+        </div>
+        <button class="icon-button" id="installButton" type="button" hidden title="Install app" aria-label="Install app">
+          <span aria-hidden="true">+</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="view active" id="todayView" aria-labelledby="todayTab">
+          <div class="session-panel">
+            <div class="session-meta">
+              <span id="sessionCount">Prompt 1 of 16</span>
+              <span id="sessionSkill">Meaning from audio</span>
+            </div>
+            <div class="progress-rail" aria-hidden="true">
+              <div id="sessionBar"></div>
+            </div>
+
+            <div class="listen-stage">
+              <button class="listen-button" id="playButton" type="button">
+                <span class="play-icon" aria-hidden="true">▶</span>
+                <span>Play phrase</span>
+              </button>
+              <p class="audio-state" id="audioState">Tap play, then answer from what you hear.</p>
+            </div>
+
+            <div class="quiz-card">
+              <p class="quiz-question" id="quizQuestion">What is the rough meaning?</p>
+              <div class="options" id="options"></div>
+            </div>
+
+            <div class="reveal-card" id="revealCard" hidden>
+              <div class="result-line" id="resultLine"></div>
+              <div class="heard-phrase" id="heardPhrase"></div>
+              <div class="meaning-grid">
+                <div>
+                  <span>Tamil</span>
+                  <p id="tamilMeaning"></p>
+                </div>
+                <div>
+                  <span>English</span>
+                  <p id="englishMeaning"></p>
+                </div>
+              </div>
+              <div class="pattern-strip">
+                <span id="verbFamily"></span>
+                <span id="tensePattern"></span>
+              </div>
+              <button class="primary-button" id="nextButton" type="button">Next</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="verbsView" aria-labelledby="verbsTab">
+          <div class="section-heading">
+            <h2>Verb Families</h2>
+            <p>Base action, common spoken forms, and meanings.</p>
+          </div>
+          <div class="verb-list" id="verbList"></div>
+        </section>
+
+        <section class="view" id="searchView" aria-labelledby="searchTab">
+          <div class="section-heading">
+            <h2>Heard a word?</h2>
+            <p>Search approximate sounds like <strong>gya</strong>, <strong>khana</strong>, <strong>pani</strong>, or <strong>office</strong>.</p>
+          </div>
+          <label class="search-box">
+            <span>Word or sound</span>
+            <input id="wordSearch" type="search" autocomplete="off" placeholder="Type what she heard">
+          </label>
+          <div class="search-summary" id="searchSummary"></div>
+          <div class="search-results" id="searchResults"></div>
+        </section>
+
+        <section class="view" id="progressView" aria-labelledby="progressTab">
+          <div class="section-heading">
+            <h2>Progress</h2>
+            <p>Recognition grows when a form is answered correctly across sessions.</p>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span>Base words</span>
+              <strong id="wordBankCount">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>Benchmark</span>
+              <strong id="benchmarkScore">0%</strong>
+            </div>
+            <div class="stat-card">
+              <span>Attempts</span>
+              <strong id="attemptCount">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>Learned phrases</span>
+              <strong id="learnedCount">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>Current session</span>
+              <strong id="sessionAccuracy">0%</strong>
+            </div>
+          </div>
+          <div class="progress-block">
+            <h3>Verbs recognized</h3>
+            <div id="verbProgress"></div>
+          </div>
+          <div class="progress-block">
+            <h3>Noun anchors</h3>
+            <div id="nounProgress"></div>
+          </div>
+          <div class="progress-block">
+            <h3>Tense patterns</h3>
+            <div id="tenseProgress"></div>
+          </div>
+          <div class="progress-block">
+            <h3>14-day word plan</h3>
+            <div id="dayPlan"></div>
+          </div>
+          <button class="secondary-button" id="resetButton" type="button">Reset progress</button>
+        </section>
+      </main>
+
+      <nav class="tabbar" aria-label="Primary">
+        <button class="tab active" id="todayTab" type="button" data-view="todayView">
+          <span aria-hidden="true">●</span>
+          <span>Today</span>
+        </button>
+        <button class="tab" id="verbsTab" type="button" data-view="verbsView">
+          <span aria-hidden="true">◆</span>
+          <span>Verbs</span>
+        </button>
+        <button class="tab" id="searchTab" type="button" data-view="searchView">
+          <span aria-hidden="true">⌕</span>
+          <span>Search</span>
+        </button>
+        <button class="tab" id="progressTab" type="button" data-view="progressView">
+          <span aria-hidden="true">◼</span>
+          <span>Progress</span>
+        </button>
+      </nav>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
