@@ -1,4 +1,4 @@
-const CACHE_NAME = "hindi-listening-trainer-v4";
+const CACHE_NAME = "hindi-listening-trainer-v5";
 const ASSETS = [
   "./",
   "./index.html",

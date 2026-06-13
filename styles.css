@@ -425,6 +425,62 @@ h3 {
   font-weight: 750;
 }
 
+.record-panel,
+.transcript-card {
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid rgba(16, 35, 31, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.record-panel .audio-state {
+  margin: 10px 0 0;
+  color: var(--muted);
+  text-align: left;
+}
+
+.transcript-card {
+  margin: 12px 0 0;
+  background: #fffaf4;
+}
+
+.transcript-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.transcript-card p {
+  margin: 4px 0 10px;
+  font-size: 1.05rem;
+  font-weight: 850;
+}
+
+.word-translation {
+  display: grid;
+  gap: 8px;
+}
+
+.translation-row {
+  display: grid;
+  grid-template-columns: minmax(72px, 0.55fr) 1fr;
+  gap: 8px;
+  padding: 9px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.translation-row strong {
+  overflow-wrap: anywhere;
+}
+
+.translation-row span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
 .word-card {
   border: 1px solid rgba(16, 35, 31, 0.08);
   background: rgba(255, 255, 255, 0.9);

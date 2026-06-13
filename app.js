@@ -632,6 +632,11 @@ const els = {
   wordSearch: document.querySelector("#wordSearch"),
   searchSummary: document.querySelector("#searchSummary"),
   searchResults: document.querySelector("#searchResults"),
+  recordButton: document.querySelector("#recordButton"),
+  recordState: document.querySelector("#recordState"),
+  transcriptCard: document.querySelector("#transcriptCard"),
+  recognizedText: document.querySelector("#recognizedText"),
+  wordTranslation: document.querySelector("#wordTranslation"),
   resetButton: document.querySelector("#resetButton"),
   installButton: document.querySelector("#installButton")
 };
@@ -655,6 +660,7 @@ function bindEvents() {
   els.nextButton.addEventListener("click", nextPrompt);
   els.resetButton.addEventListener("click", resetProgress);
   els.wordSearch.addEventListener("input", () => renderSearch(els.wordSearch.value));
+  els.recordButton.addEventListener("click", recordSpeech);
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -861,6 +867,58 @@ function renderSearch(rawQuery = "") {
       <div class="alias-line">Heard like: ${escapeHtml([entry.term, ...entry.aliases].slice(0, 6).join(", "))}${query ? ` · match: ${escapeHtml(matched)} · score ${score}` : ""}</div>
     `;
     els.searchResults.append(card);
+  });
+}
+
+function recordSpeech() {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) {
+    els.recordState.textContent = "Speech recognition is not available in this browser. Try Chrome or Safari, or type the heard word above.";
+    return;
+  }
+
+  const recognition = new Recognition();
+  recognition.lang = "hi-IN";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 3;
+  els.recordButton.disabled = true;
+  els.recordButton.textContent = "Listening...";
+  els.recordState.textContent = "Speak or replay the Hindi/Hinglish phrase now.";
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    renderTranscript(transcript);
+    els.wordSearch.value = transcript.split(/\s+/)[0] || transcript;
+    renderSearch(els.wordSearch.value);
+  };
+
+  recognition.onerror = () => {
+    els.recordState.textContent = "Could not recognize that audio. Try a shorter phrase or type the closest sound.";
+  };
+
+  recognition.onend = () => {
+    els.recordButton.disabled = false;
+    els.recordButton.textContent = "Record speech";
+  };
+
+  recognition.start();
+}
+
+function renderTranscript(transcript) {
+  const words = transcript.split(/\s+/).map((word) => word.trim()).filter(Boolean);
+  els.transcriptCard.hidden = false;
+  els.recognizedText.textContent = transcript;
+  els.recordState.textContent = "Matched each recognized word against the crash-course word bank.";
+  els.wordTranslation.innerHTML = "";
+
+  words.forEach((word) => {
+    const match = searchVocabulary(word, 1)[0];
+    const row = document.createElement("div");
+    row.className = "translation-row";
+    row.innerHTML = match
+      ? `<strong>${escapeHtml(word)}</strong><span>${escapeHtml(match.entry.term)}: ${escapeHtml(match.entry.tamil)} · ${escapeHtml(match.entry.english)}</span>`
+      : `<strong>${escapeHtml(word)}</strong><span>No close match yet</span>`;
+    els.wordTranslation.append(row);
   });
 }
 

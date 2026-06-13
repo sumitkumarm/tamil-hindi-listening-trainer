@@ -85,6 +85,15 @@
             <span>Word or sound</span>
             <input id="wordSearch" type="search" autocomplete="off" placeholder="Type what she heard">
           </label>
+          <div class="record-panel">
+            <button class="primary-button" id="recordButton" type="button">Record speech</button>
+            <p class="audio-state" id="recordState">Use Chrome/Safari speech support to turn a heard phrase into word suggestions.</p>
+            <div class="transcript-card" id="transcriptCard" hidden>
+              <span>Recognized phrase</span>
+              <p id="recognizedText"></p>
+              <div class="word-translation" id="wordTranslation"></div>
+            </div>
+          </div>
           <div class="search-summary" id="searchSummary"></div>
           <div class="search-results" id="searchResults"></div>
         </section>

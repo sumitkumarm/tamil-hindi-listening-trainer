@@ -87,6 +87,15 @@ export default function Page() {
             <span>Word or sound</span>
             <input id="wordSearch" type="search" autoComplete="off" placeholder="Type what she heard" />
           </label>
+          <div className="record-panel">
+            <button className="primary-button" id="recordButton" type="button">Record speech</button>
+            <p className="audio-state" id="recordState">Use Chrome/Safari speech support to turn a heard phrase into word suggestions.</p>
+            <div className="transcript-card" id="transcriptCard" hidden>
+              <span>Recognized phrase</span>
+              <p id="recognizedText" />
+              <div className="word-translation" id="wordTranslation" />
+            </div>
+          </div>
           <div className="search-summary" id="searchSummary" />
           <div className="search-results" id="searchResults" />
         </section>
