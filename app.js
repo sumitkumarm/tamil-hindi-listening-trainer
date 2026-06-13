@@ -115,7 +115,7 @@ const vocabulary = [
   ["jaana", "verb", "போவது", "to go", "jana, jaana, gya, gaya, gayi, jaa"],
   ["aana", "verb", "வருவது", "to come", "ana, aaya, aayi, aa"],
   ["karna", "verb", "செய்வது", "to do", "krna, kar, kiya, karna"],
-  ["khaana", "verb", "சாப்பிடுவது", "to eat / food", "khana, kha, khaya, khayi"],
+  ["khaana", "verb", "சாப்பிடுவது / உணவு", "to eat / food", "khana, kha, khaya, khayi, food, meal, eat"],
   ["peena", "verb", "குடிப்பது", "to drink", "pina, pee, piya"],
   ["bolna", "verb", "சொல்வது / பேசுவது", "to say / speak", "bol, bola, boli"],
   ["dekhna", "verb", "பார்ப்பது", "to see / watch", "dekh, dekha, dekhi"],
@@ -182,6 +182,11 @@ const vocabulary = [
   ["gharwaale", "noun", "வீட்டார்", "family people", "family, gharwale"],
   ["mummy", "noun", "அம்மா", "mother", "mom, maa"],
   ["papa", "noun", "அப்பா", "father", "dad"],
+  ["tau", "noun", "அப்பாவின் பெரிய அண்ணன்", "father's elder brother / uncle", "taau, tauji, uncle, paternal uncle, father's brother"],
+  ["chacha", "noun", "அப்பாவின் தம்பி", "father's younger brother / uncle", "chachaji, uncle, paternal uncle, father's brother"],
+  ["maama", "noun", "அம்மாவின் சகோதரர்", "mother's brother / uncle", "mama, mamaji, uncle, maternal uncle, mother's brother"],
+  ["phupha", "noun", "அப்பாவின் சகோதரியின் கணவர்", "father's sister's husband / uncle", "fufa, phuphaji, uncle, paternal aunt's husband"],
+  ["mausa", "noun", "அம்மாவின் சகோதரியின் கணவர்", "mother's sister's husband / uncle", "mausaji, uncle, maternal aunt's husband"],
   ["dost", "noun", "நண்பர்", "friend", "friend"],
   ["ladka", "noun", "பையன்", "boy", "boy"],
   ["ladki", "noun", "பெண்", "girl", "girl"],
@@ -281,6 +286,11 @@ const commonNounTerms = [
   "time",
   "mummy",
   "papa",
+  "tau",
+  "chacha",
+  "maama",
+  "phupha",
+  "mausa",
   "dost",
   "baat",
   "sawaal",
@@ -1161,22 +1171,23 @@ function renderTranscript(transcript) {
 
 function searchVocabulary(query, limit) {
   const normalizedQuery = normalizeSound(normalizeRecognizedPhrase(query));
-  return vocabulary
-    .map((entry) => {
+  const ranked = vocabulary
+    .map((entry, index) => {
       const candidates = [entry.term, entry.english, ...entry.aliases];
       const scored = candidates.map((candidate) => {
         const normalizedCandidate = normalizeSound(candidate);
         let score = editDistance(normalizedQuery, normalizedCandidate);
+        if (normalizedCandidate === normalizedQuery) score -= 5;
         if (normalizedCandidate.includes(normalizedQuery)) score -= 2;
         if (normalizedQuery.includes(normalizedCandidate)) score -= 1;
         return { candidate, score };
       });
       scored.sort((a, b) => a.score - b.score);
-      return { entry, matched: scored[0].candidate, score: scored[0].score };
+      return { entry, matched: scored[0].candidate, score: scored[0].score, index };
     })
-    .filter((result) => result.score <= Math.max(3, Math.ceil(normalizedQuery.length * 0.45)))
-    .sort((a, b) => a.score - b.score || a.entry.term.localeCompare(b.entry.term))
-    .slice(0, limit);
+    .sort((a, b) => a.score - b.score || a.index - b.index);
+  const exactMatches = ranked.filter((result) => normalizeSound(result.matched) === normalizedQuery);
+  return (exactMatches.length ? exactMatches : ranked.filter((result) => result.score <= Math.max(3, Math.ceil(normalizedQuery.length * 0.45)))).slice(0, limit);
 }
 
 function firstSearchableRecognizedToken(value) {
