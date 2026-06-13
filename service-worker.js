@@ -2,8 +2,6 @@ const CACHE_NAME = "hindi-listening-trainer-v3";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
   "./icon.svg",
   "./manifest.webmanifest"
 ];
