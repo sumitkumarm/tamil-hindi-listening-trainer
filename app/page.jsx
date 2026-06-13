@@ -5,11 +5,17 @@ import { useEffect } from "react";
 export default function Page() {
   useEffect(() => {
     if (document.querySelector('script[data-app-script="hindi-listening-trainer"]')) return;
+    const audioData = document.createElement("script");
+    audioData.src = "/audio-data.js";
+    audioData.defer = true;
+    audioData.dataset.appScript = "hindi-listening-audio-data";
     const script = document.createElement("script");
     script.src = "/app.js";
     script.defer = true;
     script.dataset.appScript = "hindi-listening-trainer";
-    document.body.append(script);
+    audioData.onload = () => document.body.append(script);
+    audioData.onerror = () => document.body.append(script);
+    document.body.append(audioData);
   }, []);
 
   return (

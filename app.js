@@ -597,6 +597,7 @@ const state = {
   answered: false,
   sessionAttempts: 0,
   sessionCorrect: 0,
+  currentAudio: null,
   deferredInstallPrompt: null,
   progress: loadProgress()
 };
@@ -656,7 +657,7 @@ function bindEvents() {
     tab.addEventListener("click", () => showView(tab.dataset.view));
   });
 
-  els.playButton.addEventListener("click", () => speak(currentPrompt().phrase));
+  els.playButton.addEventListener("click", () => playPromptAudio(currentPrompt()));
   els.nextButton.addEventListener("click", nextPrompt);
   els.resetButton.addEventListener("click", resetProgress);
   els.wordSearch.addEventListener("input", () => renderSearch(els.wordSearch.value));
@@ -771,27 +772,38 @@ function nextPrompt() {
   renderProgress();
 }
 
-function speak(text) {
-  if (!("speechSynthesis" in window)) {
-    els.audioState.textContent = "Speech playback is not available in this browser.";
-    return;
-  }
+function playPromptAudio(prompt) {
+  window.speechSynthesis?.cancel();
+  state.currentAudio?.pause();
+  const audioSrc = window.promptAudioData?.[prompt.id] || `audio/${prompt.id}.mp3`;
+  const audio = new Audio(audioSrc);
+  state.currentAudio = audio;
+  els.playButton.disabled = true;
+  els.audioState.textContent = "Loading natural Hindi audio...";
 
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  const voices = window.speechSynthesis.getVoices();
-  const voice = voices.find((item) => item.lang === "hi-IN") || voices.find((item) => item.lang.includes("IN"));
-  if (voice) utterance.voice = voice;
-  utterance.lang = voice?.lang || "hi-IN";
-  utterance.rate = 0.86;
-  utterance.pitch = 1;
-  utterance.onstart = () => {
+  audio.onplaying = () => {
     els.audioState.textContent = "Listening...";
   };
-  utterance.onend = () => {
+
+  audio.onended = () => {
+    els.playButton.disabled = false;
     els.audioState.textContent = "Now answer from memory.";
   };
-  window.speechSynthesis.speak(utterance);
+
+  audio.onerror = () => {
+    els.playButton.disabled = false;
+    els.audioState.textContent = "Hindi audio is unavailable. Refresh once or check the hosted build.";
+  };
+
+  audio
+    .play()
+    .then(() => {
+      els.audioState.textContent = "Playing natural Hindi audio...";
+    })
+    .catch(() => {
+      els.playButton.disabled = false;
+      els.audioState.textContent = "Audio playback was blocked. Tap Play again.";
+    });
 }
 
 function renderVerbFamilies() {

@@ -1,7 +1,10 @@
-const CACHE_NAME = "hindi-listening-trainer-v5";
+const CACHE_NAME = "hindi-listening-trainer-v7";
 const ASSETS = [
   "./",
   "./index.html",
+  "./app.js",
+  "./audio-data.js",
+  "./styles.css",
   "./icon.svg",
   "./manifest.webmanifest"
 ];

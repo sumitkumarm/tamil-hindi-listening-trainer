@@ -4,11 +4,13 @@ const files = [
   "public/manifest.webmanifest",
   "public/service-worker.js",
   "public/icon.svg",
-  "public/app.js"
+  "public/app.js",
+  "public/audio-data.js"
 ];
 
 await mkdir("dist", { recursive: true });
 await mkdir("dist/.openai", { recursive: true });
 
 await Promise.all(files.map((file) => cp(file, `dist/${file.replace("public/", "")}`)));
+await cp("public/audio", "dist/audio", { recursive: true });
 await cp(".openai/hosting.json", "dist/.openai/hosting.json");
