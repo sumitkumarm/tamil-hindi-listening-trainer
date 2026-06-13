@@ -341,7 +341,12 @@ h3 {
   margin-bottom: 14px;
 }
 
+.section-heading-spaced {
+  margin-top: 22px;
+}
+
 .verb-list,
+.noun-list,
 .stats-grid,
 .search-results {
   display: grid;
@@ -366,6 +371,45 @@ h3 {
 .verb-title {
   font-size: 1.3rem;
   font-weight: 900;
+}
+
+.word-with-audio {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.audio-chip {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.audio-chip.small {
+  width: 28px;
+  height: 28px;
+  font-size: 0.68rem;
+}
+
+.audio-chip.is-playing,
+.audio-chip:disabled {
+  background: var(--muted);
+}
+
+.meaning-labels {
+  display: grid;
+  gap: 3px;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .verb-meaning {
@@ -481,9 +525,18 @@ h3 {
   font-weight: 750;
 }
 
+.phrase-row {
+  border: 1px solid rgba(23, 107, 93, 0.18);
+  background: #e8f5ef;
+}
+
 .word-card {
   border: 1px solid rgba(16, 35, 31, 0.08);
   background: rgba(255, 255, 255, 0.9);
+}
+
+.noun-card {
+  padding-bottom: 12px;
 }
 
 .word-head {

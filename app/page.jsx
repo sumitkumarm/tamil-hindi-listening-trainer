@@ -79,9 +79,14 @@ export default function Page() {
         <section className="view" id="verbsView" aria-labelledby="verbsTab">
           <div className="section-heading">
             <h2>Verb Families</h2>
-            <p>Base action, common spoken forms, and meanings.</p>
+            <p>Base action, common spoken forms, Tamil meaning, and English meaning.</p>
           </div>
           <div className="verb-list" id="verbList" />
+          <div className="section-heading section-heading-spaced">
+            <h2>Common Noun Anchors</h2>
+            <p>Words that usually carry the gist of everyday Hindi/Hinglish sentences.</p>
+          </div>
+          <div className="noun-list" id="nounList" />
         </section>
 
         <section className="view" id="searchView" aria-labelledby="searchTab">

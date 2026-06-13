@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "audio:edge": "python scripts/generate_audio.py",
+    "audio:edge": "python scripts/generate_audio.py && python scripts/generate_audio_data.py",
     "audio:mai": "python scripts/generate_mai_audio.py --force && python scripts/generate_audio_data.py",
     "audio:embed": "python scripts/generate_audio_data.py",
     "build": "python scripts/generate_audio_data.py && node scripts/prepare-public.mjs && vinext build && node scripts/build.mjs"

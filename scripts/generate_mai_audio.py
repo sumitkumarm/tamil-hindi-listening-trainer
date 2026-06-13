@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from generate_audio import PROMPTS
+from generate_audio import PROMPTS, WORD_AUDIO
 
 
 DEFAULT_VOICE = "hi-IN-Kavya:MAI-Voice-2"
@@ -92,7 +92,7 @@ def main() -> int:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for prompt_id, text in PROMPTS.items():
+    for prompt_id, text in {**PROMPTS, **WORD_AUDIO}.items():
         output = output_dir / f"{prompt_id}.mp3"
         if output.exists() and not args.force:
             print(f"skipped {output}")

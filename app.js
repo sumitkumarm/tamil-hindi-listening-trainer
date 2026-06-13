@@ -251,6 +251,124 @@ const vocabulary = [
   aliases: aliases.split(",").map((alias) => alias.trim()).filter(Boolean)
 }));
 
+const commonNounTerms = [
+  "kaam",
+  "ghar",
+  "office",
+  "paani",
+  "chai",
+  "coffee",
+  "doodh",
+  "roti",
+  "rice",
+  "sabzi",
+  "dal",
+  "namak",
+  "cheeni",
+  "phone",
+  "message",
+  "call",
+  "photo",
+  "video",
+  "movie",
+  "song",
+  "gaadi",
+  "auto",
+  "train",
+  "flight",
+  "ticket",
+  "paise",
+  "time",
+  "mummy",
+  "papa",
+  "dost",
+  "baat",
+  "sawaal",
+  "jawab"
+];
+
+const commonNouns = commonNounTerms
+  .map((term) => vocabulary.find((entry) => entry.term === term))
+  .filter(Boolean);
+
+const recognizedHindiTerms = {
+  "\u0915\u094d\u092f\u093e": "kya",
+  "\u0915\u092f\u093e": "kya",
+  "\u0915\u0939": "bol",
+  "\u0915\u0939\u093e": "bola",
+  "\u0915\u0939\u0940": "boli",
+  "\u092c\u094b\u0932": "bol",
+  "\u092c\u094b\u0932\u093e": "bola",
+  "\u0930\u0939\u0940": "rahi",
+  "\u0930\u0939\u093e": "raha",
+  "\u0939\u094b": "ho",
+  "\u0939\u0942\u0901": "hoon",
+  "\u0939\u0942\u0902": "hoon",
+  "\u0939\u0948": "hai",
+  "\u092e\u0948\u0902": "main",
+  "\u092e\u0947": "main",
+  "\u0924\u0941\u092e": "tum",
+  "\u0924\u0941\u092e\u0928\u0947": "tumne",
+  "\u0935\u0939": "woh",
+  "\u0918\u0930": "ghar",
+  "\u0911\u092b\u093f\u0938": "office",
+  "\u092a\u093e\u0928\u0940": "paani",
+  "\u0916\u093e\u0928\u093e": "khaana",
+  "\u0916\u093e\u092f\u093e": "khaaya",
+  "\u0917\u092f\u093e": "gaya",
+  "\u0917\u092f\u0940": "gayi",
+  "\u0906\u0928\u093e": "aana",
+  "\u0906": "aa",
+  "\u091c\u093e\u0928\u093e": "jaana",
+  "\u091c\u093e": "jaa",
+  "\u0915\u0930": "kar",
+  "\u0915\u093f\u092f\u093e": "kiya",
+  "\u0926\u0947\u0916": "dekh",
+  "\u0932\u0947": "le",
+  "\u0926\u0947": "de"
+};
+
+const phraseMatches = [
+  {
+    tokens: ["kya", "bol"],
+    term: "bolna",
+    tamil: "நீ என்ன சொல்கிறாய்?",
+    english: "What are you saying?",
+    note: "kya + kah/bol + rahi/raha points to saying/speaking."
+  },
+  {
+    tokens: ["kya", "kar"],
+    term: "karna",
+    tamil: "நீ என்ன செய்கிறாய்?",
+    english: "What are you doing?",
+    note: "kya + kar points to doing."
+  },
+  {
+    tokens: ["paani", "chahiye"],
+    term: "paani",
+    tamil: "தண்ணீர் வேண்டும்",
+    english: "Need water",
+    note: "paani is the noun anchor; chahiye means need/want."
+  },
+  {
+    tokens: ["ghar", "gaya"],
+    term: "jaana",
+    tamil: "வீட்டுக்கு போனான்",
+    english: "Went home",
+    note: "gaya/gayi are past forms from jaana."
+  }
+];
+
+const helperTermMeanings = {
+  raha: ["present/ongoing marker", "நடந்து கொண்டிருக்கும் குறி"],
+  rahi: ["present/ongoing marker", "நடந்து கொண்டிருக்கும் குறி"],
+  ho: ["you are / auxiliary", "நீ இருக்கிறாய் / துணைச்சொல்"],
+  hoon: ["I am / auxiliary", "நான் இருக்கிறேன் / துணைச்சொல்"],
+  hai: ["is / auxiliary", "இருக்கிறது / துணைச்சொல்"],
+  aa: ["come stem", "வரு என்ற வேர்"],
+  jaa: ["go stem", "போ என்ற வேர்"]
+};
+
 const prompts = [
   {
     id: "office-jaana",
@@ -621,6 +739,7 @@ const els = {
   tensePattern: document.querySelector("#tensePattern"),
   nextButton: document.querySelector("#nextButton"),
   verbList: document.querySelector("#verbList"),
+  nounList: document.querySelector("#nounList"),
   benchmarkScore: document.querySelector("#benchmarkScore"),
   attemptCount: document.querySelector("#attemptCount"),
   learnedCount: document.querySelector("#learnedCount"),
@@ -647,6 +766,7 @@ init();
 function init() {
   renderPrompt();
   renderVerbFamilies();
+  renderCommonNouns();
   renderProgress();
   bindEvents();
   registerServiceWorker();
@@ -658,6 +778,7 @@ function bindEvents() {
   });
 
   els.playButton.addEventListener("click", () => playPromptAudio(currentPrompt()));
+  document.addEventListener("click", handleAudioButtonClick);
   els.nextButton.addEventListener("click", nextPrompt);
   els.resetButton.addEventListener("click", resetProgress);
   els.wordSearch.addEventListener("input", () => renderSearch(els.wordSearch.value));
@@ -772,37 +893,83 @@ function nextPrompt() {
   renderProgress();
 }
 
+function handleAudioButtonClick(event) {
+  const button = event.target.closest("[data-audio-id]");
+  if (!button) return;
+
+  playReferenceAudio(button);
+}
+
+function playReferenceAudio(button) {
+  button.disabled = true;
+  button.classList.add("is-playing");
+  playAudioClip(button.dataset.audioId, {
+    onEnd: () => {
+      button.disabled = false;
+      button.classList.remove("is-playing");
+    },
+    onError: () => {
+      button.disabled = false;
+      button.classList.remove("is-playing");
+    },
+    onBlocked: () => {
+      button.disabled = false;
+      button.classList.remove("is-playing");
+    }
+  });
+}
+
 function playPromptAudio(prompt) {
-  window.speechSynthesis?.cancel();
-  state.currentAudio?.pause();
-  const audioSrc = window.promptAudioData?.[prompt.id] || `audio/${prompt.id}.mp3`;
-  const audio = new Audio(audioSrc);
-  state.currentAudio = audio;
   els.playButton.disabled = true;
   els.audioState.textContent = "Loading natural Hindi audio...";
+  playAudioClip(prompt.id, {
+    onPlaying: () => {
+      els.audioState.textContent = "Listening...";
+    },
+    onEnd: () => {
+      els.playButton.disabled = false;
+      els.audioState.textContent = "Now answer from memory.";
+    },
+    onError: () => {
+      els.playButton.disabled = false;
+      els.audioState.textContent = "Hindi audio is unavailable. Refresh once or check the hosted build.";
+    },
+    onBlocked: () => {
+      els.playButton.disabled = false;
+      els.audioState.textContent = "Audio playback was blocked. Tap Play again.";
+    },
+    onStarted: () => {
+      els.audioState.textContent = "Playing natural Hindi audio...";
+    }
+  });
+}
+
+function playAudioClip(audioId, handlers = {}) {
+  window.speechSynthesis?.cancel();
+  state.currentAudio?.pause();
+  const audioSrc = window.promptAudioData?.[audioId] || `audio/${audioId}.mp3`;
+  const audio = new Audio(audioSrc);
+  state.currentAudio = audio;
 
   audio.onplaying = () => {
-    els.audioState.textContent = "Listening...";
+    handlers.onPlaying?.();
   };
 
   audio.onended = () => {
-    els.playButton.disabled = false;
-    els.audioState.textContent = "Now answer from memory.";
+    handlers.onEnd?.();
   };
 
   audio.onerror = () => {
-    els.playButton.disabled = false;
-    els.audioState.textContent = "Hindi audio is unavailable. Refresh once or check the hosted build.";
+    handlers.onError?.();
   };
 
   audio
     .play()
     .then(() => {
-      els.audioState.textContent = "Playing natural Hindi audio...";
+      handlers.onStarted?.();
     })
     .catch(() => {
-      els.playButton.disabled = false;
-      els.audioState.textContent = "Audio playback was blocked. Tap Play again.";
+      handlers.onBlocked?.();
     });
 }
 
@@ -814,18 +981,27 @@ function renderVerbFamilies() {
     card.innerHTML = `
       <div class="verb-head">
         <div>
-          <div class="verb-title">${escapeHtml(verb.base)}</div>
-          <div class="verb-meaning">${escapeHtml(verb.tamil)} · ${escapeHtml(verb.english)}</div>
+          <div class="word-with-audio">
+            <button class="audio-chip" type="button" data-audio-id="word-${escapeHtml(verb.base)}" aria-label="Play ${escapeHtml(verb.base)}">▶</button>
+            <div class="verb-title">${escapeHtml(verb.base)}</div>
+          </div>
+          <div class="meaning-labels">
+            <span>Tamil meaning: ${escapeHtml(verb.tamil)}</span>
+            <span>English: ${escapeHtml(verb.english)}</span>
+          </div>
         </div>
         <span class="chip">${Math.min(state.progress.verbs[verb.base] || 0, 3)}/3</span>
       </div>
       <div class="form-list">
         ${verb.forms
           .map(
-            ([form, tamil, english]) => `
+            ([form, tamil, english], index) => `
               <div class="form-row">
-                <strong>${escapeHtml(form)}</strong>
-                <span>${escapeHtml(tamil)} · ${escapeHtml(english)}</span>
+                <div class="word-with-audio">
+                  <button class="audio-chip small" type="button" data-audio-id="form-${escapeHtml(verb.base)}-${index}" aria-label="Play ${escapeHtml(form)}">▶</button>
+                  <strong>${escapeHtml(form)}</strong>
+                </div>
+                <span>Tamil meaning: ${escapeHtml(tamil)}<br>English: ${escapeHtml(english)}</span>
               </div>
             `
           )
@@ -833,6 +1009,32 @@ function renderVerbFamilies() {
       </div>
     `;
     els.verbList.append(card);
+  });
+}
+
+function renderCommonNouns() {
+  if (!els.nounList) return;
+  els.nounList.innerHTML = "";
+  commonNouns.forEach((entry) => {
+    const card = document.createElement("article");
+    card.className = "word-card noun-card";
+    card.innerHTML = `
+      <div class="word-head">
+        <div>
+          <div class="word-with-audio">
+            <button class="audio-chip" type="button" data-audio-id="word-${escapeHtml(entry.term)}" aria-label="Play ${escapeHtml(entry.term)}">▶</button>
+            <div class="word-term">${escapeHtml(entry.term)}</div>
+          </div>
+          <div class="meaning-labels">
+            <span>Tamil meaning: ${escapeHtml(entry.tamil)}</span>
+            <span>English: ${escapeHtml(entry.english)}</span>
+          </div>
+        </div>
+        <span class="chip word-type">${escapeHtml(entry.type)}</span>
+      </div>
+      <div class="alias-line">Heard like: ${escapeHtml([entry.term, ...entry.aliases].slice(0, 6).join(", "))}</div>
+    `;
+    els.nounList.append(card);
   });
 }
 
@@ -851,13 +1053,16 @@ function renderProgress() {
   renderMeterList(els.tenseProgress, ["past", "present", "future", "need/intent", "want/need"], state.progress.tenses);
   renderDayPlan();
   renderVerbFamilies();
+  renderCommonNouns();
 }
 
 function renderSearch(rawQuery = "") {
   const query = rawQuery.trim();
-  const results = query ? searchVocabulary(query, 10) : vocabulary.slice(0, 10).map((entry) => ({ entry, score: 0, matched: entry.term }));
+  const phraseMatch = query ? matchRecognizedPhrase(normalizeRecognizedPhrase(query).split(/\s+/)) : null;
+  const searchQuery = phraseMatch?.term || query;
+  const results = searchQuery ? searchVocabulary(searchQuery, 10) : vocabulary.slice(0, 10).map((entry) => ({ entry, score: 0, matched: entry.term }));
   els.searchSummary.textContent = query
-    ? `${results.length} likely match${results.length === 1 ? "" : "es"} for "${query}".`
+    ? `${results.length} likely match${results.length === 1 ? "" : "es"} for "${query}"${phraseMatch ? `, interpreted as ${phraseMatch.term}` : ""}.`
     : `Search ${vocabulary.length} base words, or start with these common anchors.`;
   els.searchResults.innerHTML = "";
 
@@ -900,7 +1105,7 @@ function recordSpeech() {
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript;
     renderTranscript(transcript);
-    els.wordSearch.value = transcript.split(/\s+/)[0] || transcript;
+    els.wordSearch.value = firstSearchableRecognizedToken(transcript) || transcript;
     renderSearch(els.wordSearch.value);
   };
 
@@ -918,24 +1123,44 @@ function recordSpeech() {
 
 function renderTranscript(transcript) {
   const words = transcript.split(/\s+/).map((word) => word.trim()).filter(Boolean);
+  const normalizedTokens = words.map((word) => normalizeRecognizedWord(word));
+  const phraseMatch = matchRecognizedPhrase(normalizedTokens);
   els.transcriptCard.hidden = false;
   els.recognizedText.textContent = transcript;
-  els.recordState.textContent = "Matched each recognized word against the crash-course word bank.";
+  els.recordState.textContent = phraseMatch
+    ? "Matched the phrase gist first, then the individual anchor words."
+    : "Matched each recognized word against the crash-course word bank.";
   els.wordTranslation.innerHTML = "";
 
+  if (phraseMatch) {
+    const phraseRow = document.createElement("div");
+    phraseRow.className = "translation-row phrase-row";
+    phraseRow.innerHTML = `
+      <strong>Phrase gist</strong>
+      <span>${escapeHtml(phraseMatch.term)}: ${escapeHtml(phraseMatch.tamil)} · ${escapeHtml(phraseMatch.english)}<br>${escapeHtml(phraseMatch.note)}</span>
+    `;
+    els.wordTranslation.append(phraseRow);
+  }
+
   words.forEach((word) => {
-    const match = searchVocabulary(word, 1)[0];
+    const normalizedWord = normalizeRecognizedWord(word);
+    const helperMeaning = helperTermMeanings[normalizedWord];
+    const match = helperMeaning ? null : searchVocabulary(normalizedWord, 1)[0];
     const row = document.createElement("div");
     row.className = "translation-row";
-    row.innerHTML = match
-      ? `<strong>${escapeHtml(word)}</strong><span>${escapeHtml(match.entry.term)}: ${escapeHtml(match.entry.tamil)} · ${escapeHtml(match.entry.english)}</span>`
-      : `<strong>${escapeHtml(word)}</strong><span>No close match yet</span>`;
+    if (helperMeaning) {
+      row.innerHTML = `<strong>${escapeHtml(word)}</strong><span>${escapeHtml(normalizedWord)}: ${escapeHtml(helperMeaning[1])} · ${escapeHtml(helperMeaning[0])}</span>`;
+    } else {
+      row.innerHTML = match
+        ? `<strong>${escapeHtml(word)}</strong><span>${escapeHtml(match.entry.term)}: ${escapeHtml(match.entry.tamil)} · ${escapeHtml(match.entry.english)}</span>`
+        : `<strong>${escapeHtml(word)}</strong><span>No close match yet</span>`;
+    }
     els.wordTranslation.append(row);
   });
 }
 
 function searchVocabulary(query, limit) {
-  const normalizedQuery = normalizeSound(query);
+  const normalizedQuery = normalizeSound(normalizeRecognizedPhrase(query));
   return vocabulary
     .map((entry) => {
       const candidates = [entry.term, entry.english, ...entry.aliases];
@@ -952,6 +1177,32 @@ function searchVocabulary(query, limit) {
     .filter((result) => result.score <= Math.max(3, Math.ceil(normalizedQuery.length * 0.45)))
     .sort((a, b) => a.score - b.score || a.entry.term.localeCompare(b.entry.term))
     .slice(0, limit);
+}
+
+function firstSearchableRecognizedToken(value) {
+  const tokens = String(value)
+    .split(/\s+/)
+    .map((word) => normalizeRecognizedWord(word));
+  return matchRecognizedPhrase(tokens)?.term || tokens.find((word) => word && !helperTermMeanings[word]);
+}
+
+function normalizeRecognizedPhrase(value) {
+  return String(value)
+    .split(/\s+/)
+    .map((word) => normalizeRecognizedWord(word))
+    .join(" ");
+}
+
+function normalizeRecognizedWord(value) {
+  const word = String(value).trim().replace(/[?!\u0964,.;:]/g, "");
+  return recognizedHindiTerms[word] || word;
+}
+
+function matchRecognizedPhrase(tokens) {
+  const normalizedTokens = tokens.map((token) => normalizeSound(token));
+  return phraseMatches.find((match) =>
+    match.tokens.every((required) => normalizedTokens.some((token) => token.includes(normalizeSound(required))))
+  );
 }
 
 function normalizeSound(value) {
