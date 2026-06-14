@@ -256,6 +256,15 @@ const vocabulary = [
   aliases: aliases.split(",").map((alias) => alias.trim()).filter(Boolean)
 }));
 
+const searchIndex = vocabulary.map((entry, index) => ({
+  entry,
+  index,
+  candidates: [entry.term, entry.english, ...entry.aliases].map((candidate) => ({
+    candidate,
+    normalized: normalizeSound(candidate)
+  }))
+}));
+
 const commonNounTerms = [
   "kaam",
   "ghar",
@@ -726,6 +735,7 @@ const state = {
   sessionAttempts: 0,
   sessionCorrect: 0,
   currentAudio: null,
+  activeTranscriptQuery: "",
   deferredInstallPrompt: null,
   progress: loadProgress()
 };
@@ -791,7 +801,7 @@ function bindEvents() {
   document.addEventListener("click", handleAudioButtonClick);
   els.nextButton.addEventListener("click", nextPrompt);
   els.resetButton.addEventListener("click", resetProgress);
-  els.wordSearch.addEventListener("input", () => renderSearch(els.wordSearch.value));
+  els.wordSearch.addEventListener("input", handleSearchInput);
   els.recordButton.addEventListener("click", recordSpeech);
 
   window.addEventListener("beforeinstallprompt", (event) => {
@@ -1097,6 +1107,17 @@ function renderSearch(rawQuery = "") {
   });
 }
 
+function handleSearchInput() {
+  const query = els.wordSearch.value.trim();
+  if (state.activeTranscriptQuery && query !== state.activeTranscriptQuery) {
+    clearTranscript();
+    els.recordState.textContent = query
+      ? "Showing typed search results."
+      : "Use Chrome/Safari speech support to turn a heard phrase into word suggestions.";
+  }
+  renderSearch(els.wordSearch.value);
+}
+
 function recordSpeech() {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) {
@@ -1104,18 +1125,20 @@ function recordSpeech() {
     return;
   }
 
+  clearTranscript();
   const recognition = new Recognition();
   recognition.lang = "hi-IN";
   recognition.interimResults = false;
-  recognition.maxAlternatives = 3;
+  recognition.maxAlternatives = 1;
   els.recordButton.disabled = true;
   els.recordButton.textContent = "Listening...";
   els.recordState.textContent = "Speak or replay the Hindi/Hinglish phrase now.";
 
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript;
-    renderTranscript(transcript);
-    els.wordSearch.value = firstSearchableRecognizedToken(transcript) || transcript;
+    const searchQuery = firstSearchableRecognizedToken(transcript) || transcript;
+    renderTranscript(transcript, searchQuery);
+    els.wordSearch.value = searchQuery;
     renderSearch(els.wordSearch.value);
   };
 
@@ -1131,7 +1154,15 @@ function recordSpeech() {
   recognition.start();
 }
 
-function renderTranscript(transcript) {
+function clearTranscript() {
+  state.activeTranscriptQuery = "";
+  els.transcriptCard.hidden = true;
+  els.recognizedText.textContent = "";
+  els.wordTranslation.innerHTML = "";
+}
+
+function renderTranscript(transcript, searchQuery) {
+  state.activeTranscriptQuery = searchQuery.trim();
   const words = transcript.split(/\s+/).map((word) => word.trim()).filter(Boolean);
   const normalizedTokens = words.map((word) => normalizeRecognizedWord(word));
   const phraseMatch = matchRecognizedPhrase(normalizedTokens);
@@ -1171,16 +1202,14 @@ function renderTranscript(transcript) {
 
 function searchVocabulary(query, limit) {
   const normalizedQuery = normalizeSound(normalizeRecognizedPhrase(query));
-  const ranked = vocabulary
-    .map((entry, index) => {
-      const candidates = [entry.term, entry.english, ...entry.aliases];
-      const scored = candidates.map((candidate) => {
-        const normalizedCandidate = normalizeSound(candidate);
-        let score = editDistance(normalizedQuery, normalizedCandidate);
-        if (normalizedCandidate === normalizedQuery) score -= 5;
-        if (normalizedCandidate.includes(normalizedQuery)) score -= 2;
-        if (normalizedQuery.includes(normalizedCandidate)) score -= 1;
-        return { candidate, score };
+  const ranked = searchIndex
+    .map(({ entry, index, candidates }) => {
+      const scored = candidates.map(({ candidate, normalized }) => {
+        let score = editDistance(normalizedQuery, normalized);
+        if (normalized === normalizedQuery) score -= 5;
+        if (normalized.includes(normalizedQuery)) score -= 2;
+        if (normalizedQuery.includes(normalized)) score -= 1;
+        return { candidate, score, normalized };
       });
       scored.sort((a, b) => a.score - b.score);
       return { entry, matched: scored[0].candidate, score: scored[0].score, index };
