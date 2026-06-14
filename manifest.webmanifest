@@ -1,0 +1,17 @@
+{
+  "name": "Hindi Listening Trainer",
+  "short_name": "Hindi Trainer",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6f3ed",
+  "theme_color": "#10231f",
+  "description": "Audio-first Hindi/Hinglish recognition trainer for Tamil speakers.",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

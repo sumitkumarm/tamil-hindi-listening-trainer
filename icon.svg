@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hindi Listening Trainer icon">
+  <rect width="512" height="512" rx="96" fill="#10231f"/>
+  <circle cx="166" cy="256" r="58" fill="#f6f3ed"/>
+  <path d="M246 186c38 28 58 51 58 70s-20 42-58 70" fill="none" stroke="#f6f3ed" stroke-width="34" stroke-linecap="round"/>
+  <path d="M318 134c64 52 96 93 96 122s-32 70-96 122" fill="none" stroke="#c95f32" stroke-width="34" stroke-linecap="round"/>
+  <path d="M118 376h276" stroke="#176b5d" stroke-width="34" stroke-linecap="round"/>
+</svg>
