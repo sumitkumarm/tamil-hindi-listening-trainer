@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "days": 30,
+  "prompts": 120,
+  "roleplays": 30,
+  "hindi_speech_lines": 180,
+  "swift_sources": 14,
+  "xcode_compilation": "not run; requires macOS/Xcode"
+}
